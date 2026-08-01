@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agri Card Generator - Fixed Input Focus</title>
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #eef5f0; margin: 0; padding: 20px; }
+        .main-wrapper { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+        
+        /* Form Section */
+        .form-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 12px; font-weight: 700; color: #444; }
+        .form-group input, .form-group select { padding: 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; }
+        
+        /* Land Details Table */
+        .land-section { margin-top: 25px; border-top: 2px dashed #ddd; padding-top: 15px; overflow-x: auto; }
+        .land-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .land-header h3 { margin: 0; color: #1b5e20; font-size: 16px; }
+        .btn-add { background: #0f9d58; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        
+        .land-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        .land-table th { background: #e8f5e9; text-align: center; padding: 8px; font-size: 11px; color: #1b5e20; text-transform: uppercase; }
+        .land-table td { padding: 4px; text-align: center; }
+        .land-table input { width: 100%; padding: 6px 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; text-align: center; }
+        .btn-delete { background: #ff5252; color: white; border: none; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* Actions Bar */
+        .download-actions { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        
+        /* Preview Section Layout */
+        .preview-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        .print-page-layout {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            border: 1px dashed #bbb;
+        }
+
+        /* Standard ID Card Size Ratio */
+        .id-card {
+            width: 323px;
+            height: 204px;
+            background: #ffffff;
+            border: 1.5px solid #2e7d32;
+            border-radius: 8px;
+            padding: 8px;
+            position: relative;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #2e7d32; padding-bottom: 2px; }
+        .brand-title { color: #2e7d32; font-size: 14px; font-weight: bold; margin: 0; }
+        .brand-marathi { color: #2e7d32; font-size: 11px; font-weight: bold; }
+
+        /* Front Card Body */
+        .front-body { display: flex; gap: 8px; margin-top: 4px; }
+        .photo-area { width: 70px; height: 88px; border: 1px solid #ccc; background: #fafafa; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+        .photo-area img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .info-area { font-size: 9.5px; line-height: 1.3; color: #222; flex-grow: 1; overflow: hidden; }
+        .info-area .name-en { font-weight: bold; font-size: 11px; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info-area .name-mr { font-weight: bold; font-size: 10px; color: #2e7d32; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .info-area div { margin-bottom: 1px; }
+
+        .qr-code-box { width: 48px; height: 48px; position: absolute; right: 8px; bottom: 24px; }
+        
+        .card-footer-front { border-top: 1px solid #e0e0e0; padding-top: 2px; font-weight: bold; font-size: 10px; color: #2e7d32; }
+
+        /* Back Card Body & Fixed Overflow Table */
+        .back-address { font-size: 8.5px; font-weight: bold; color: #333; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .preview-land-table { width: 100%; border-collapse: collapse; margin-top: 2px; table-layout: fixed; }
+        .preview-land-table th { background: #2e7d32; color: #fff; padding: 2px 1px; border: 1px solid #2e7d32; text-align: center; font-size: 7.5px; }
+        .preview-land-table td { padding: 2px 1px; border: 1px solid #ccc; text-align: center; font-weight: 600; font-size: 7.5px; word-wrap: break-word; }
+
+        .card-footer-back { background: #2e7d32; color: white; margin: -8px; padding: 3px 8px; font-size: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Control Buttons */
+        .btn-action { background: #2e7d32; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .btn-action-alt { background: #1565c0; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; }
+        .btn-action:hover { background: #1b5e20; }
+        .btn-action-alt:hover { background: #0d47a1; }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <!-- INPUT FORM -->
+    <div class="form-card">
+        <h2 style="color: #2e7d32; margin-top:0;">Agri Card Generator (शेतकरी कार्ड)</h2>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Farmer ID (शेतकरी आयडी)*</label>
+                <input type="text" id="fId" value="64681925722" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>Farmer Name (English)*</label>
+                <input type="text" id="fNameEn" value="Champa Devi" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>शेतकऱ्याचे नाव (मराठी)*</label>
+                <input type="text" id="fNameMr" value="चंपा देवी" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>जन्मतारीख (Date of Birth)*</label>
+                <input type="text" id="fDob" value="01/07/1972" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>लिंग (Gender)*</label>
+                <select id="fGender" onchange="updateCard()">
+                    <option value="स्त्री (Female)">स्त्री (Female)</option>
+                    <option value="पुरुष (Male)">पुरुष (Male)</option>
+                    <option value="इतर (Other)">इतर (Other)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>मोबाईल क्र. (Mobile)*</label>
+                <input type="text" id="fMobile" value="8670140375" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>आधार क्र. (Aadhaar No)*</label>
+                <input type="text" id="fAadhaar" value="XXXX 6718 XXXX" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>नाते (Relation Type)</label>
+                <select id="fRelType" onchange="updateCard()">
+                    <option value="S/O">S/O (मुलाचे नाव)</option>
+                    <option value="W/O">W/O (पतीचे नाव)</option>
+                    <option value="D/O">D/O (मुलीचे नाव)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>नातेवाईकाचे नाव (Relative Name)*</label>
+                <input type="text" id="fRelName" value="मदन प्रसाद" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>पत्ता (Address for back card)*</label>
+                <input type="text" id="fAddress" value="मु. वाघापूर, ता. तासगाव, जि. सांगली - 416312" oninput="updateCard()">
+            </div>
+            <div class="form-group">
+                <label>फोटो निवडा (Farmer Photo)</label>
+                <input type="file" accept="image/*" onchange="loadPhoto(event)">
+            </div>
+        </div>
+
+        <!-- DYNAMIC LAND DETAILS -->
+        <div class="land-section">
+            <div class="land-header">
+                <h3>🌱 शेतीचा तपशील (LAND DETAILS)</h3>
+                <button type="button" class="btn-add" onclick="addLandRow()">+ Add Row</button>
+            </div>
+            <table class="land-table">
+                <thead>
+                    <tr>
+                        <th style="width:16%;">STATE</th>
+                        <th style="width:16%;">DISTRICT</th>
+                        <th style="width:16%;">SUB DIST</th>
+                        <th style="width:16%;">VILL</th>
+                        <th style="width:10%;">S.NO</th>
+                        <th style="width:12%;">KHATE NO</th>
+                        <th style="width:10%;">AREA</th>
+                        <th style="width:8%;">ACT</th>
+                    </tr>
+                </thead>
+                <tbody id="landTableBody">
+                    <!-- Dynamic Rows -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DOWNLOAD BUTTONS -->
+    <div class="download-actions">
+        <button class="btn-action-alt" onclick="downloadPagePDF()">📄 Download Single Page (PDF - Front & Back)</button>
+        <button class="btn-action" onclick="downloadSingleImage()">🖼 Download Single Page Image (PNG)</button>
+    </div>
+
+    <!-- PREVIEW SECTION -->
+    <div class="preview-container">
+        <div class="print-page-layout" id="combinedPrintArea">
+            <h4 style="margin: 0; color: #555; font-size: 12px; text-transform: uppercase;">ID Card Print View (Front & Back)</h4>
+            
+            <!-- FRONT VIEW -->
+            <div class="id-card" id="frontCard">
+                <div class="card-top">
+                    <h3 class="brand-title">Agri 🌾 Card</h3>
+                    <span class="brand-marathi">माझे किसान कार्ड</span>
+                </div>
+                <div class="front-body">
+                    <div class="photo-area">
+                        <img id="cardPhoto" src="https://via.placeholder.com/70x88?text=Photo" alt="Photo">
+                    </div>
+                    <div class="info-area">
+                        <div class="name-en" id="cNameEn">Champa Devi</div>
+                        <div class="name-mr" id="cNameMr">चंपा देवी</div>
+                        <div><b id="cRelType">S/O:</b> <span id="cRelName">मदन प्रसाद</span></div>
+                        <div>जन्म: <span id="cDob">01/07/1972</span></div>
+                        <div>लिंग: <span id="cGender">स्त्री (Female)</span></div>
+                        <div>मोबाईल: <span id="cMobile">8670140375</span></div>
+                        <div>आधार: <span id="cAadhaar">XXXX 6718 XXXX</span></div>
+                    </div>
+                </div>
+                <div class="qr-code-box" id="qrcode"></div>
+                <div class="card-footer-front">FARMER ID: <span id="cId">64681925722</span></div>
+            </div>
+
+            <!-- BACK VIEW -->
+            <div class="id-card" id="backCard">
+                <div>
+                    <div class="card-top">
+                        <h3 class="brand-title" style="font-size: 12px;">Agri 🌾 Card</h3>
+                    </div>
+                    <div class="back-address">पत्ता: <span id="cAddress">मु. वाघापूर, ता. तासगाव, जि. सांगली - 416312</span></div>
+                    
+                    <table class="preview-land-table">
+                        <thead>
+                            <tr>
+                                <th style="width:16%;">State</th>
+                                <th style="width:16%;">District</th>
+                                <th style="width:16%;">Sub Dist</th>
+                                <th style="width:16%;">Vill</th>
+                                <th style="width:10%;">S.No</th>
+                                <th style="width:14%;">Khate No</th>
+                                <th style="width:12%;">Area</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cardLandTable">
+                            <!-- Live Land Rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer-back">
+                    <span>हे कार्ड फक्त वैयक्तिक वापरासाठी आहे.</span>
+                    <b>फार्मर आयडी</b>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize QR Code
+    var qrcode = new QRCode(document.getElementById("qrcode"), { width: 48, height: 48 });
+
+    // Initial Land Data
+    var landData = [
+        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '102', khateNo: '4589', area: '0.40' },
+        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '105/1', khateNo: '4589', area: '0.25' }
+    ];
+
+    // Render Input Form Table Only Once/When Needed
+    function renderFormTable() {
+        var formTbody = document.getElementById('landTableBody');
+        formTbody.innerHTML = '';
+
+        landData.forEach((row, index) => {
+            var trForm = document.createElement('tr');
+            trForm.innerHTML = `
+                <td><input type="text" value="${row.state}" oninput="updateLandDataSilent(${index}, 'state', this.value)"></td>
+                <td><input type="text" value="${row.dist}" oninput="updateLandDataSilent(${index}, 'dist', this.value)"></td>
+                <td><input type="text" value="${row.subDist}" oninput="updateLandDataSilent(${index}, 'subDist', this.value)"></td>
+                <td><input type="text" value="${row.vill}" oninput="updateLandDataSilent(${index}, 'vill', this.value)"></td>
+                <td><input type="text" value="${row.sNo}" oninput="updateLandDataSilent(${index}, 'sNo', this.value)"></td>
+                <td><input type="text" value="${row.khateNo}" oninput="updateLandDataSilent(${index}, 'khateNo', this.value)"></td>
+                <td><input type="text" value="${row.area}" oninput="updateLandDataSilent(${index}, 'area', this.value)"></td>
+                <td><button class="btn-delete" onclick="removeLandRow(${index})">🗑</button></td>
+            `;
+            formTbody.appendChild(trForm);
+        });
+        renderCardPreviewTable();
+    }
+
+    // Render Preview Table without destroying Input elements
+    function renderCardPreviewTable() {
+        var cardTbody = document.getElementById('cardLandTable');
+        cardTbody.innerHTML = '';
+
+        landData.forEach((row) => {
+            var trCard = document.createElement('tr');
+            trCard.innerHTML = `
+                <td>${row.state}</td>
+                <td>${row.dist}</td>
+                <td>${row.subDist}</td>
+                <td>${row.vill}</td>
+                <td>${row.sNo}</td>
+                <td>${row.khateNo}</td>
+                <td style="color: #2e7d32;">${row.area}</td>
+            `;
+            cardTbody.appendChild(trCard);
+        });
+    }
+
+    // Update Array and Card View silently without losing focus
+    function updateLandDataSilent(index, field, value) {
+        landData[index][field] = value;
+        renderCardPreviewTable();
+    }
+
+    function addLandRow() {
+        landData.push({ state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '', khateNo: '', area: '' });
+        renderFormTable();
+    }
+
+    function removeLandRow(index) {
+        landData.splice(index, 1);
+        renderFormTable();
+    }
+
+    // Update Text Details
+    function updateCard() {
+        var id = document.getElementById('fId').value;
+        var nameEn = document.getElementById('fNameEn').value;
+        var nameMr = document.getElementById('fNameMr').value;
+
+        document.getElementById('cId').innerText = id;
+        document.getElementById('cNameEn').innerText = nameEn;
+        document.getElementById('cNameMr').innerText = nameMr;
+        document.getElementById('cDob').innerText = document.getElementById('fDob').value;
+        document.getElementById('cGender').innerText = document.getElementById('fGender').value;
+        document.getElementById('cMobile').innerText = document.getElementById('fMobile').value;
+        document.getElementById('cAadhaar').innerText = document.getElementById('fAadhaar').value;
+        document.getElementById('cRelType').innerText = document.getElementById('fRelType').value + ':';
+        document.getElementById('cRelName').innerText = document.getElementById('fRelName').value;
+        document.getElementById('cAddress').innerText = document.getElementById('fAddress').value;
+
+        qrcode.makeCode(`FARMER ID: ${id}\nNAME: ${nameEn}`);
+    }
+
+    // Photo Handler
+    function loadPhoto(event) {
+        var img = document.getElementById('cardPhoto');
+        img.src = URL.createObjectURL(event.target.files[0]);
+    }
+
+    // Download Single Page as PDF
+    function downloadPagePDF() {
+        var element = document.getElementById('combinedPrintArea');
+        html2canvas(element, { scale: 3 }).then(canvas => {
+            const { jsPDF } = window.jspdf;
+            var pdf = new jsPDF('p', 'mm', 'a4');
+            var imgData = canvas.toDataURL('image/png');
+            
+            var imgWidth = 120;
+            var imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 45, 20, imgWidth, imgHeight);
+            pdf.save(`Agri-Card-SinglePage-${document.getElementById('fId').value}.pdf`);
+        });
+    }
+
+    // Download Single Page as PNG
+    function downloadSingleImage() {
+        var element = document.getElementById('combinedPrintArea');
+        html2canvas(element, { scale: 3 }).then(canvas => {
+            var a = document.createElement('a');
+            a.download = `Agri-Card-SinglePage-${document.getElementById('fId').value}.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        });
+    }
+
+    // Initialize Page
+    renderFormTable();
+    updateCard();
+</script>
+
+</body>
+</html>
