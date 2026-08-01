@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VB-G RAM G Completion Certificate Generator (Form No - 65)</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Times New Roman', Times, serif; }
+        body { background-color: #f0f2f5; margin: 0; padding: 20px; }
+        
+        .main-wrapper { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* FORM SECTION */
+        .form-card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-family: Arial, sans-serif; }
+        .form-card h2 { margin-top: 0; color: #1b5e20; font-size: 18px; border-bottom: 2px solid #1b5e20; padding-bottom: 8px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #333; }
+        .form-group input { padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        
+        .btn-print { background: #1b5e20; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; margin-top: 15px; width: 100%; }
+        .btn-print:hover { background: #0d3b10; }
+
+        /* A4 PRINT SHEET */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 20mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #000;
+        }
+
+        .header-title { text-align: center; margin-bottom: 25px; }
+        .header-title h3 { margin: 0; font-size: 17px; text-decoration: underline; font-weight: bold; }
+        .header-title h4 { margin: 2px 0; font-size: 15px; }
+        .header-title h2 { margin: 5px 0 0 0; font-size: 18px; text-decoration: underline; font-weight: bold; }
+
+        .field-row { margin-bottom: 12px; display: flex; align-items: flex-start; }
+        .field-label { font-weight: bold; min-width: 150px; }
+        .field-value { border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 5px; font-weight: bold; }
+
+        .authority-section { margin-top: 15px; margin-bottom: 15px; }
+        .auth-item { margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: baseline; }
+
+        .expenditure-box { margin-left: 120px; margin-top: 5px; margin-bottom: 20px; }
+        .exp-row { display: flex; width: 320px; justify-content: space-between; margin-bottom: 4px; }
+        .exp-val { border-bottom: 1px dotted #000; width: 120px; text-align: right; font-weight: bold; padding-right: 5px; }
+
+        .cert-text { text-align: justify; margin: 25px 0 50px 0; font-size: 15px; line-height: 1.8; }
+
+        /* SIGNATURES LAYOUT */
+        .sig-row-1 { display: flex; justify-content: space-between; text-align: center; margin-bottom: 60px; padding: 0 5px; }
+        .sig-row-2 { display: flex; justify-content: space-between; text-align: center; margin-bottom: 70px; }
+        .sig-row-3 { text-align: right; margin-right: 40px; }
+
+        .sig-box { width: 32%; font-size: 13.5px; font-weight: bold; }
+        .sig-box-marathi { font-family: 'Arial', sans-serif; }
+
+        /* PRINT MEDIA STYLES */
+        @media print {
+            body { background: none; padding: 0; }
+            .form-card, .btn-print { display: none !important; }
+            .a4-page { box-shadow: none; margin: 0; width: 100%; height: 100%; padding: 15mm 15mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <!-- INPUT FORM -->
+    <div class="form-card">
+        <h2>VB-G RAM G Completion Certificate Details (माहिती भरा)</h2>
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Name OF Work (कामाचे नाव)</label>
+                <input type="text" id="inWorkName" placeholder="उदा. Construction of Farm Pond / Road Work..." oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>MIS Work Code</label>
+                <input type="text" id="inMisCode" placeholder="272600..." oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>Beneficiary Name (लाभार्थी)</label>
+                <input type="text" id="inBeneficiary" placeholder="लाभार्थ्याचे नाव" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>Grampanchayat (ग्रामपंचायत)</label>
+                <input type="text" id="inGrampanchayat" placeholder="उदा. वाघापूर" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>Panchayat Samiti / Taluka</label>
+                <input type="text" id="inPsName" value="Vita" oninput="updatePreview()">
+            </div>
+            
+            <!-- TS Details -->
+            <div class="form-group">
+                <label>T.S. No.</label>
+                <input type="text" id="inTsNo" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>T.S. Date</label>
+                <input type="text" id="inTsDate" placeholder="DD/MM/YYYY" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>T.S. Amount (Rs.)</label>
+                <input type="text" id="inTsAmount" oninput="updatePreview()">
+            </div>
+
+            <!-- AA Details -->
+            <div class="form-group">
+                <label>A.A. No.</label>
+                <input type="text" id="inAaNo" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>A.A. Date</label>
+                <input type="text" id="inAaDate" placeholder="DD/MM/YYYY" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>A.A. Amount (Rs.)</label>
+                <input type="text" id="inAaAmount" oninput="updatePreview()">
+            </div>
+
+            <!-- Expenditure -->
+            <div class="form-group">
+                <label>Unskilled Amount (अकुशल)</label>
+                <input type="text" id="inUnskilled" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>Skilled Amount (कुशल)</label>
+                <input type="text" id="inSkilled" oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+                <label>Completion Date (पूर्ण झाल्याची तारीख)</label>
+                <input type="text" id="inCompDate" placeholder="DD / MM / 2024" oninput="updatePreview()">
+            </div>
+        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ Print / Download A4 PDF</button>
+    </div>
+
+    <!-- A4 PREVIEW SHEET -->
+    <div class="a4-page" id="printArea">
+        <div class="header-title">
+            <h3>From No – 65</h3>
+            <h4>(see Rule 190)</h4>
+            <h2>Completion Certificate Of Ongoing Work Of VB-G RAM G</h2>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label">Name OF Work –</span>
+            <span class="field-value" id="outWorkName"></span>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label">MIS Work Code –</span>
+            <span class="field-value" id="outMisCode"></span>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label" style="text-decoration: underline;">Benificairy</span>
+            <span class="field-label" style="min-width:10px;">–</span>
+            <span class="field-value" id="outBeneficiary"></span>
+        </div>
+
+        <div class="field-row">
+            <span class="field-label">Agency -</span>
+            <span>Grampanchayat - </span>
+            <span class="field-value" id="outGrampanchayat"></span>
+        </div>
+
+        <div class="authority-section">
+            <div class="auth-item">
+                <span style="font-weight:bold; margin-right: 10px;">Autheority -</span>
+                <span><b>1) Technical Approved By Dy. Engineer B&C / MID / Agriculture Officer Panchayat Samiti <span class="psText">Vita</span>.</b></span>
+            </div>
+            <div style="padding-left: 95px; margin-bottom: 8px;">
+                Vide T.S. No. <span id="outTsNo" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span> 
+                Date - <span id="outTsDate" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span> 
+                From Rs.- <span id="outTsAmount" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span>
+            </div>
+
+            <div class="auth-item" style="padding-left: 95px;">
+                <span><b>2) Administrative Approvel By BDO Panchayat Samiti <span class="psText">Vita</span>.</b></span>
+            </div>
+            <div style="padding-left: 110px;">
+                A.A. No. <span id="outAaNo" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span> 
+                Date - <span id="outAaDate" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span> 
+                From Rs.- <span id="outAaAmount" style="font-weight:bold; border-bottom: 1px dotted #000; padding:0 15px;"></span>
+            </div>
+        </div>
+
+        <div class="field-row" style="margin-top:15px;">
+            <span class="field-label">Expenditure-</span>
+        </div>
+        <div class="expenditure-box">
+            <div class="exp-row">
+                <span>Unskilled Ammount -</span>
+                <span class="exp-val" id="outUnskilled"></span>
+            </div>
+            <div class="exp-row">
+                <span>Skilled Ammount -</span>
+                <span class="exp-val" id="outSkilled"></span>
+            </div>
+            <div class="exp-row">
+                <span style="font-weight:bold;">Total Ammount -</span>
+                <span class="exp-val" id="outTotal" style="font-weight:bold;"></span>
+            </div>
+        </div>
+
+        <div class="cert-text">
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is to Certify That The Above Mentioned Work is completed on date <b id="outCompDate">/ &nbsp;&nbsp;&nbsp;&nbsp;/ 202</b> And that there have been no material deviations from the sanctioned plans and estimates other than those sanctioned by the Competent Authority.
+        </div>
+
+        <!-- DYNAMIC GRAMPANCHAYAT SIGNATURES SECTION -->
+        <div class="sig-row-1 sig-box-marathi">
+            <div class="sig-box">
+                सरपंच<br>
+                ग्रामपंचायत <span class="gpText">------------------</span>
+            </div>
+            <div class="sig-box">
+                ग्रामरोजगार सेवक<br>
+                ग्रामपंचायत <span class="gpText">------------------</span>
+            </div>
+            <div class="sig-box">
+                ग्रामसेवक<br>
+                ग्रामपंचायत <span class="gpText">------------------</span>
+            </div>
+        </div>
+
+        <div class="sig-row-2">
+            <div class="sig-box">
+                Sectional Engineer / Extention Engineer<br>
+                Panchayat Samiti <span class="psText">Vita</span>
+            </div>
+            <div class="sig-box">
+                Dy. Engineer<br>
+                Panchayat Samiti <span class="psText">Vita</span>
+            </div>
+            <div class="sig-box">
+                Agriculture officer<br>
+                Panchayat Samiti <span class="psText">Vita</span>
+            </div>
+        </div>
+
+        <div class="sig-row-3 sig-box-marathi">
+            <span style="font-size: 16px; font-weight: bold;">लाभार्थी</span><br><br>
+            <b>( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )</b>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updatePreview() {
+        document.getElementById('outWorkName').innerText = document.getElementById('inWorkName').value;
+        document.getElementById('outMisCode').innerText = document.getElementById('inMisCode').value;
+        document.getElementById('outBeneficiary').innerText = document.getElementById('inBeneficiary').value;
+
+        // Update Grampanchayat Name
+        var gpName = document.getElementById('inGrampanchayat').value;
+        document.getElementById('outGrampanchayat').innerText = gpName;
+        
+        var gpElements = document.getElementsByClassName('gpText');
+        for(var i=0; i<gpElements.length; i++) {
+            gpElements[i].innerText = gpName ? gpName : '------------------';
+        }
+
+        // Update Panchayat Samiti Name
+        var ps = document.getElementById('inPsName').value;
+        var psElements = document.getElementsByClassName('psText');
+        for(var j=0; j<psElements.length; j++) {
+            psElements[j].innerText = ps ? ps : 'Vita';
+        }
+
+        document.getElementById('outTsNo').innerText = document.getElementById('inTsNo').value;
+        document.getElementById('outTsDate').innerText = document.getElementById('inTsDate').value;
+        document.getElementById('outTsAmount').innerText = document.getElementById('inTsAmount').value;
+
+        document.getElementById('outAaNo').innerText = document.getElementById('inAaNo').value;
+        document.getElementById('outAaDate').innerText = document.getElementById('inAaDate').value;
+        document.getElementById('outAaAmount').innerText = document.getElementById('inAaAmount').value;
+
+        var un = parseFloat(document.getElementById('inUnskilled').value) || 0;
+        var sk = parseFloat(document.getElementById('inSkilled').value) || 0;
+        
+        document.getElementById('outUnskilled').innerText = un ? un.toFixed(2) : '';
+        document.getElementById('outSkilled').innerText = sk ? sk.toFixed(2) : '';
+        document.getElementById('outTotal').innerText = (un + sk) ? (un + sk).toFixed(2) : '';
+
+        var cDate = document.getElementById('inCompDate').value;
+        document.getElementById('outCompDate').innerText = cDate ? cDate : '/    / 202';
+    }
+
+    // Initial render
+    updatePreview();
+</script>
+
+</body>
+</html>
