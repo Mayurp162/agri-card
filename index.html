@@ -88,8 +88,8 @@
         .back-address { font-size: 8.5px; font-weight: bold; color: #333; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .preview-land-table { width: 100%; border-collapse: collapse; margin-top: 2px; table-layout: fixed; }
-        .preview-land-table th { background: #2e7d32; color: #fff; padding: 2px 1px; border: 1px solid #2e7d32; text-align: center; font-size: 7.5px; }
-        .preview-land-table td { padding: 2px 1px; border: 1px solid #ccc; text-align: center; font-weight: 600; font-size: 7.5px; word-wrap: break-word; }
+        .preview-land-table th { background: #2e7d32; color: #fff; padding: 2px 1px; border: 1px solid #2e7d32; text-align: center; font-size: 7px; }
+        .preview-land-table td { padding: 2px 1px; border: 1px solid #ccc; text-align: center; font-weight: 600; font-size: 7px; word-wrap: break-word; }
 
         .card-footer-back { background: #2e7d32; color: white; margin: -8px; padding: 3px 8px; font-size: 8px; display: flex; justify-content: space-between; align-items: center; }
 
@@ -171,14 +171,15 @@
             <table class="land-table">
                 <thead>
                     <tr>
-                        <th style="width:16%;">STATE</th>
-                        <th style="width:16%;">DISTRICT</th>
-                        <th style="width:16%;">SUB DIST</th>
-                        <th style="width:16%;">VILL</th>
-                        <th style="width:10%;">S.NO</th>
-                        <th style="width:12%;">KHATE NO</th>
-                        <th style="width:10%;">AREA</th>
-                        <th style="width:8%;">ACT</th>
+                        <th style="width:14%;">STATE</th>
+                        <th style="width:14%;">DISTRICT</th>
+                        <th style="width:14%;">SUB DIST</th>
+                        <th style="width:14%;">VILL</th>
+                        <th style="width:12%;">FARM ID</th>
+                        <th style="width:8%;">S.NO</th>
+                        <th style="width:10%;">KHATE NO</th>
+                        <th style="width:8%;">AREA</th>
+                        <th style="width:6%;">ACT</th>
                     </tr>
                 </thead>
                 <tbody id="landTableBody">
@@ -234,13 +235,14 @@
                     <table class="preview-land-table">
                         <thead>
                             <tr>
-                                <th style="width:16%;">State</th>
-                                <th style="width:16%;">District</th>
-                                <th style="width:16%;">Sub Dist</th>
-                                <th style="width:16%;">Vill</th>
-                                <th style="width:10%;">S.No</th>
-                                <th style="width:14%;">Khate No</th>
-                                <th style="width:12%;">Area</th>
+                                <th style="width:14%;">State</th>
+                                <th style="width:14%;">District</th>
+                                <th style="width:14%;">Sub Dist</th>
+                                <th style="width:14%;">Vill</th>
+                                <th style="width:13%;">Farm ID</th>
+                                <th style="width:8%;">S.No</th>
+                                <th style="width:13%;">Khate No</th>
+                                <th style="width:10%;">Area</th>
                             </tr>
                         </thead>
                         <tbody id="cardLandTable">
@@ -262,10 +264,10 @@
     // Initialize QR Code
     var qrcode = new QRCode(document.getElementById("qrcode"), { width: 48, height: 48 });
 
-    // Initial Land Data
+    // Initial Land Data with Farm ID Column
     var landData = [
-        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '102', khateNo: '4589', area: '0.40' },
-        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '105/1', khateNo: '4589', area: '0.25' }
+        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', farmId: 'FM-8901', sNo: '102', khateNo: '4589', area: '0.40' },
+        { state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', farmId: 'FM-8902', sNo: '105/1', khateNo: '4589', area: '0.25' }
     ];
 
     // Render Input Form Table Only Once/When Needed
@@ -280,6 +282,7 @@
                 <td><input type="text" value="${row.dist}" oninput="updateLandDataSilent(${index}, 'dist', this.value)"></td>
                 <td><input type="text" value="${row.subDist}" oninput="updateLandDataSilent(${index}, 'subDist', this.value)"></td>
                 <td><input type="text" value="${row.vill}" oninput="updateLandDataSilent(${index}, 'vill', this.value)"></td>
+                <td><input type="text" value="${row.farmId || ''}" placeholder="Farm ID" oninput="updateLandDataSilent(${index}, 'farmId', this.value)"></td>
                 <td><input type="text" value="${row.sNo}" oninput="updateLandDataSilent(${index}, 'sNo', this.value)"></td>
                 <td><input type="text" value="${row.khateNo}" oninput="updateLandDataSilent(${index}, 'khateNo', this.value)"></td>
                 <td><input type="text" value="${row.area}" oninput="updateLandDataSilent(${index}, 'area', this.value)"></td>
@@ -302,6 +305,7 @@
                 <td>${row.dist}</td>
                 <td>${row.subDist}</td>
                 <td>${row.vill}</td>
+                <td style="color:#1565c0; font-weight:bold;">${row.farmId || '-'}</td>
                 <td>${row.sNo}</td>
                 <td>${row.khateNo}</td>
                 <td style="color: #2e7d32;">${row.area}</td>
@@ -317,7 +321,7 @@
     }
 
     function addLandRow() {
-        landData.push({ state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', sNo: '', khateNo: '', area: '' });
+        landData.push({ state: 'MAHARASHTRA', dist: 'SANGLI', subDist: 'TASGAON', vill: 'WAGHAPUR', farmId: '', sNo: '', khateNo: '', area: '' });
         renderFormTable();
     }
 
